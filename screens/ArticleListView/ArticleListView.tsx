@@ -1,37 +1,57 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import {styles} from './ArticleListViewStyles';
 import {
   SafeAreaView,
-  ScrollView,
+  FlatList,
   Text,
   TouchableOpacity,
-  View,
+  Image,
 } from 'react-native';
+import {fetchArticles} from '../../utils';
+import {Article} from '../../types';
 
 const ArticleListView = () => {
   const navigation = useNavigation();
-  const [title, setTitle] = useState('');
-  fetch('https://s3.us-west-2.amazonaws.com/secure.notion-static.com/191f13ed-8aca-44ed-8b51-cc4473e09471/API_Sample-1626790950108.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210721%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210721T112413Z&X-Amz-Expires=86400&X-Amz-Signature=44cb6a0383b1f84b514ab01dce2234f5cf55911cdd9183cff32cc5bfcaacc3a7&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22API_Sample-1626790950108.json%22')
-    .then(response => {
-      return response.json();
-    })
-    .then(data => {
-      console.log(data.posts[0].title);
-      setTitle(data.posts[0].title);
-    });
+  const [articles, setArticles] = useState<Article[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const response = await fetchArticles();
+
+      setArticles(response);
+    })();
+  }, []);
+
+  const renderItem = ({item}: {item: Article}) => {
+    return (
+      <TouchableOpacity
+        key={item.id}
+        activeOpacity={0.7}
+        style={styles.titleContainer}
+        onPress={() => {
+          navigation.navigate('ArticleSingleView', {
+            title: item.title,
+            date: item.date,
+            content: item.content,
+            thumbnail: item.thumbnail,
+          });
+        }}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text>{item.date}</Text>
+        <Text>{item.excerpt}</Text>
+        <Image source={{uri: item.thumbnail}} style={styles.image} />
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <SafeAreaView>
-      <ScrollView>
-        <View>
-          <Text>{title}</Text>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('ArticleSingleView');
-            }}>
-            <Text>single view</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={articles}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+      />
     </SafeAreaView>
   );
 };

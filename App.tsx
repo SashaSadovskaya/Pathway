@@ -3,9 +3,11 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import ArticleListView from './screens/ArticleListView/ArticleListView';
 import ArticleSingleView from './screens/ArticleSingleView/ArticleSingleView';
+import { RootStackParamList } from './types';
 
 const App = () => {
-  const Stack = createStackNavigator();
+  const Stack = createStackNavigator<RootStackParamList>();
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
